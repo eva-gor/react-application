@@ -1,4 +1,4 @@
-import { CSSProperties } from "react";
+import { CSSProperties, useMemo } from "react";
 import timeZones from "../sources/time-zones";
 
 const defaultZone = "Asia/Jerusalem";
@@ -13,13 +13,13 @@ export const Clock: React.FC<Props> = ({ time, timeZone }) => {
         flexDirection: "column", alignItems: 'center', boxShadow: '5px 5px 5px gray', padding: '10px', borderRadius: '5%', border: '1px solid gray'
     };
 
-    timeZone = getTimeZone(timeZone);
+    timeZone = useMemo(() => getTimeZone(timeZone), [timeZone])
 
     return <div style={style}>
         <header>
             Time in <b>{timeZone}</b>
         </header>
-        <p>{time.toLocaleTimeString(undefined, { timeZone: getTimeZone(timeZone) })}</p>
+        <p>{time.toLocaleTimeString(undefined, { timeZone: timeZone })}</p>
     </div>
 }
 
