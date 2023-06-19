@@ -1,18 +1,19 @@
-import InputResult from "../model/InputResult"
+import { CSSProperties } from "react";
+import { StatusType } from "../model/StatusType";
 
-const styleMap = {
-    error: {color: "red"},
-    warning: {color: "yellow"},
-    success: {color: "green"}
+type Props = {
+    status: StatusType;
+    message: string;
 }
-
-
-const InputResultFC:React.FC <InputResult> = ({status, message}) => {
-    const currentStyle = styleMap[status];
-    const style = {color: currentStyle.color};
-    return <div style={{...style}}>
-        {message}
+const statusProps: Map<StatusType,CSSProperties> = new Map([
+   ["error",{backgroundColor: "lightpink"}],
+   ["success",{backgroundColor: "lightgreen"}],
+   ["warning", {backgroundColor: "yellow"}],
+   
+])
+const Alert: React.FC<Props> = ({status, message}) => {
+    return <div>
+        <p style={statusProps.get(status)}>{message}</p>
     </div>
 }
-
-export default InputResultFC
+export default Alert;

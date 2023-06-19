@@ -1,21 +1,21 @@
 import { useState, useEffect } from "react";
-import { Clock } from "./Clock";
-import service from '../service/service.json';
-const num =  [...new Array(service.clockNumber)];
+import { Clock } from "./Clock"
 
 const Clocks:React.FC = () => {
-    const [time, setTime] = useState<Date>(new Date());
+    const [time, setTime] = useState<Date>(new Date())
     useEffect(() => {
+        console.log("mounting of clocks")
         const intervalId = setInterval(() => {
        setTime(new Date());
-      
+      console.log("interval")
    }, 1000 );
-   return () => clearInterval(intervalId)
-   }, []);
-
+   return () => { console.log("unmounting of clocks")
+    clearInterval(intervalId)}
+   }, [])
     return <div style={{display: 'flex',
      flexDirection: 'row', justifyContent: 'space-around'}}>
-        {num.map((__,i) => <Clock time={time}  />)}
+       <Clock time={time} cityCountry="London" />
+       <Clock time={time} cityCountry="Toronto"/>
     </div>
 }
-export default Clocks;
+export default Clocks
