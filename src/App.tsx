@@ -1,6 +1,6 @@
-import InputTimeZone from "./components/InputTimeZone";
+import Clocks from "./components/Clocks";
 
  const App: React.FC = () => {
-  return <InputTimeZone/>
+  return <Clocks/>
 }
 export default App;

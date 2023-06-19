@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
 import { Clock } from "./Clock";
+import service from '../service/service.json';
+const num =  [...new Array(service.clockNumber)];
 
-type Props = {
-    timeZones: string[]
-}
-const Clocks:React.FC <Props> = ({timeZones}) => {
+const Clocks:React.FC = () => {
     const [time, setTime] = useState<Date>(new Date());
     useEffect(() => {
         const intervalId = setInterval(() => {
@@ -13,10 +12,10 @@ const Clocks:React.FC <Props> = ({timeZones}) => {
    }, 1000 );
    return () => clearInterval(intervalId)
    }, []);
-   let counter = 0;
-   const clocks = timeZones.map(zone => <Clock time={time} timeZone={zone} key="clocks-{counter++}"/>)
-    return <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-around', width: '100%'}}>        
-       {clocks}
+
+    return <div style={{display: 'flex',
+     flexDirection: 'row', justifyContent: 'space-around'}}>
+        {num.map((__,i) => <Clock time={time}  />)}
     </div>
 }
-export default Clocks
+export default Clocks;

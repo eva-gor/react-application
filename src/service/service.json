@@ -1,0 +1,4 @@
+{
+    "clockNumber" : 5,
+    "init_zones": ["Anchorage", "Montevideo","Noronha", "Palmer", "Azores", "Minsk", "Jersey", "London", "Toronto"]
+}
