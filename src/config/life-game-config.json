@@ -1,0 +1,6 @@
+{
+    "dimension": 100,
+    "min_cd": 3,
+    "max_cd": 50,
+    "tick": 400
+}
