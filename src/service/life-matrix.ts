@@ -1,37 +1,38 @@
+import { matrixSum, range } from "../utils/number-functions";
 import { getRandomMatrix } from "../utils/random";
 
-export default class LifeMatrix{
-    constructor(private _numbers: number[][]){
+export default class LifeMatrix {
+    constructor(private _numbers: number[][]) {
 
     }
-    get numbers(){
+    get numbers() {
         return this._numbers;
     }
-    next():number[][]{
-        let res: number[][] = this._numbers.map((row, i_row) => row.map((el, i_col) => {
-            const neighbours = getNeighbourInMatrix<number>(this._numbers, i_row, i_col);
-            const neighbours_alive = neighbours.filter(n => n == 1);
-            const neighbours_alive_counter = neighbours_alive ? neighbours_alive.length : 0;
-            let res = !el && neighbours_alive_counter == 3 ? 1 : 0;
-            if (el && (neighbours_alive_counter == 2 || neighbours_alive_counter == 3) ) {
-                res = 1;
-            }
-            return res;
-        }));
-        this._numbers = res;
-        return this._numbers;
+    next(): number[][] {
+       this._numbers = this._numbers.map((__, index) => this.getRow(index));
+       return this._numbers;
+    }
+    private getRow(index: number): number[] {
+        return this._numbers[index]. map((__, j) => this.getNewCell(index, j));
+    }
+
+    private getNewCell(row: number, column: number): number {
+        const cell = this._numbers[row][column];
+        const partialMatrix = this.partialMatrix(row, column);
+        const sum = matrixSum(partialMatrix) - cell;
+        return cell? getCellFromLive(sum) : getCellFromDead(sum);
+    }
+
+    private partialMatrix(row: number, column: number): number[][] {
+        const indexStart = !column ? 0 : column - 1;
+        const indexEnd = column === this._numbers[row].length - 1 ? column + 1 : column + 2;
+        return [row - 1, row, row + 1].map(i => this._numbers[i] ? this._numbers[i].slice(indexStart, indexEnd) : []);
     }
 }
 
-function getNeighbourInMatrix<T>(ar:T[][], i_row:number, i_col:number):T[]{
-    const res: T[] =[];
-    (i_row > 0) &&  res.push(ar[i_row - 1][i_col]) && (i_col > 0) && res.push(ar[i_row - 1][i_col - 1]);
-    (i_row > 0) && (i_col  < ar.length - 1) && res.push(ar[i_row - 1][i_col + 1]);
-
-    (i_row < ar.length - 1) && res.push(ar[i_row +1][i_col]) && (i_col > 0) && res.push(ar[i_row +1][i_col - 1]);
-    (i_row < ar.length - 1) && (i_col  < ar.length - 1) &&  res.push(ar[i_row + 1][i_col + 1]);
-
-    (i_col > 0) && res.push(ar[i_row][i_col - 1]);
-    (i_col < ar[0].length -1) && res.push(ar[i_row][i_col + 1]);
-    return res;
+function getCellFromLive(sum: number): number {
+    return +(sum  >= 2 && sum <= 3);
+}
+function getCellFromDead(sum: number): number {
+    return +(sum === 3);
 }
