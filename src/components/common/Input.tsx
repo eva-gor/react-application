@@ -6,13 +6,13 @@ import "./Input.css"
 type Props = {
     submitFn: (inputText: string) => InputResult;
     placeholder: string;
+    btnDisablingCondition?: boolean;
     buttonTitle?: string;
     type?: string
 }
-const Input: React.FC<Props> = ({ submitFn, placeholder, buttonTitle, type }) => {
-
+const Input: React.FC<Props> = ({ submitFn, placeholder, btnDisablingCondition, buttonTitle, type }) => {
     const inputElementRef = useRef<HTMLInputElement>(null);
-    const [disabled, setDisabled] = useState<boolean>(true);
+    const [disabled, setDisabled] = useState<boolean>(btnDisablingCondition ?? true);
     const [message, setMessage] = useState<string>("");
     const status = useRef<StatusType>('success');
     function onClickFn() {
@@ -25,12 +25,11 @@ const Input: React.FC<Props> = ({ submitFn, placeholder, buttonTitle, type }) =>
         res.message && setTimeout(() => setMessage(''), 5000);
     }
     function onChangeFn() {
-        setDisabled(!inputElementRef.current?.value)
+        setDisabled(!inputElementRef.current?.value )
     }
     return <div>
-        <input type={type || 'text'} placeholder={placeholder} ref={inputElementRef}
-            onChange={onChangeFn} />
-        <button onClick={onClickFn} disabled={disabled}>{buttonTitle || 'GO'}</button>
+        <input type={type || 'text'} placeholder={placeholder} ref={inputElementRef} onChange={onChangeFn} />
+        <button onClick={onClickFn} disabled={disabled || !!btnDisablingCondition}>{buttonTitle || 'GO'}</button>
         {message && <Alert status={status.current} message={message}></Alert>}
     </div>
 }

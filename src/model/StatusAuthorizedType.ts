@@ -1,0 +1,1 @@
+export type StatusAuthorizedType = "authorized_user"|"authorized_admin"|"not_authorized";
