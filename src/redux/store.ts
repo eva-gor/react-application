@@ -1,14 +1,13 @@
-import {configureStore} from '@reduxjs/toolkit';
-import { useSelector } from 'react-redux';
-import { authorizationStatusReducer } from './slices/stateAuthorizedSlice';
-import { StatusAuthorizedType } from '../model/StatusAuthorizedType';
+import { configureStore } from "@reduxjs/toolkit";
+import { authReducer } from "./slices/authSlice";
+import { useSelector } from "react-redux";
+import UserData from "../model/UserData";
 
 export const store = configureStore({
     reducer: {
-        authorizationStatus: authorizationStatusReducer
+     authState: authReducer
     }
 });
-
-export function useSelectorAuthorizationStatus() {
-    return useSelector<any, StatusAuthorizedType>(state => state.authorizationStatus.status) ;
- }
+export function useSelectorAuth() {
+    return useSelector<any, UserData>(state => state.authState.userData);
+}

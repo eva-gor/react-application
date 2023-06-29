@@ -1,6 +1,5 @@
-const Products: React.FC = ()=>
-<p className="component-logo">
-Products Component
-</p>
+import { Typography } from "@mui/material";
 
-export default Products;
+const Products: React.FC = () =>
+ <Typography  sx={{textAlign:'center', fontSize:{xs: '2em', sm: '3em', lg: '5em'}}} component={"div"}>Products Component</Typography>
+ export default Products;

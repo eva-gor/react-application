@@ -1,25 +1,9 @@
-import { useDispatch } from "react-redux";
-import { authorizationStatusActions } from "../../redux/slices/stateAuthorizedSlice";
-import { useState } from "react";
-import Home from "./Home";
-
+import {useDispatch} from 'react-redux';
+import { authActions } from '../../redux/slices/authSlice';
+import { Button } from '@mui/material';
 const SignOut: React.FC = () => {
-    const [page, setPage] = useState(
-        <section className="component-section">
-            <p className="component-logo">
-                SignOut Component
-            </p>
-            <button className="component-logo" onClick={onClickFn}>Sign Out</button>
-        </section>
-    );
     const dispatch = useDispatch();
-    function onClickFn() {
-        window.localStorage.removeItem("username");
-        window.localStorage.removeItem("password");
-        dispatch(authorizationStatusActions.setAuthorizationState("not_authorized"));
-        setPage(<Home />);
-    }
-    return page;
+    return <Button onClick={() => dispatch(authActions.reset())}  variant='contained'>confirm sign out</Button>
 }
-
-export default SignOut;
+ 
+ export default SignOut;

@@ -1,5 +1,0 @@
-{
-    "authorized_user":[["/","Home"], ["/shoppingcart","Shopping Cart"], ["/signout", "Sign Out"]],
-    "authorized_admin":[["/","Home"],["/orders", "Orders"],["/customers", "Customers"], ["/signout", "Sign Out"]],
-    "not_authorized":[["/","Home"], ["/signin", "Sign In"]]
-}
