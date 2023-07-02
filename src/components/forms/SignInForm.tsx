@@ -56,7 +56,8 @@ const SignInForm: React.FC<Props> = ({ submitFn }) => {
                 <CssBaseline />
                 <Box
                     sx={{
-                        marginTop: 8,
+                        marginTop: {xs: 8, sm:-4, md: 8},
+                       
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
@@ -69,45 +70,54 @@ const SignInForm: React.FC<Props> = ({ submitFn }) => {
                         Sign in
                     </Typography>
                     <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
-                        <TextField
-                            margin="normal"
-                            required
-                            fullWidth
-                            id="email"
-                            label="Email Address"
-                            name="email"
-                            autoComplete="email"
-                            autoFocus
-                        />
-                        <TextField
-                            margin="normal"
-                            required
-                            fullWidth
-                            name="password"
-                            label="Password"
-                            type="password"
-                            id="password"
-                            autoComplete="current-password"
-                        />
+                        <Grid container justifyContent={'center'} spacing={3}>
+                            <Grid item xs={12} sm={6} md={12}>
+                                <TextField
+                                    margin="normal"
+                                    required
+                                    fullWidth
+                                    id="email"
+                                    label="Email Address"
+                                    name="email"
+                                    autoComplete="email"
+                                    autoFocus
+                                    
+                                />
+                            </Grid>
+                            <Grid item xs={12} sm={6} md={12}>
+                                <TextField
+                                    margin="normal"
+                                    required
+                                    fullWidth
+                                    name="password"
+                                    label="Password"
+                                    type="password"
+                                    id="password"
+                                    autoComplete="current-password"
 
-                        <Button
-                            type="submit"
-                            fullWidth
-                            variant="contained"
-                            sx={{ mt: 3, mb: 2 }}
-                        >
-                            Sign In
-                        </Button>
+                                />
+                            </Grid>
+                            <Grid item xs={12} >
+                                <Button
+                                    type="submit"
+                                    fullWidth
+                                    variant="contained"
+                                   
+                                >
+                                    Sign In
+                                </Button>
+                            </Grid>
+                        </Grid>
 
                     </Box>
-                    <Snackbar open={open} autoHideDuration={1000}
-                     onClose={() => setOpen(false)}>
-                        <Alert  onClose = {() => setOpen(false)} severity={severity.current} sx={{ width: '100%' }}>
+                    <Snackbar open={open} autoHideDuration={10000}
+                        onClose={() => setOpen(false)}>
+                        <Alert onClose={() => setOpen(false)} severity={severity.current} sx={{ width: '100%' }}>
                             {message.current}
                         </Alert>
                     </Snackbar>
                 </Box>
-                <Copyright sx={{ mt: 8, mb: 4 }} />
+                <Copyright sx={{ mt: 4, mb: 4 }} />
             </Container>
         </ThemeProvider>
     );

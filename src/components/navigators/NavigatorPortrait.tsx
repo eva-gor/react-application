@@ -1,138 +1,52 @@
-import * as React from 'react';
-import { styled, useTheme } from '@mui/material/styles';
-import Box from '@mui/material/Box';
-import Drawer from '@mui/material/Drawer';
-import CssBaseline from '@mui/material/CssBaseline';
-import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
-import Toolbar from '@mui/material/Toolbar';
-import List from '@mui/material/List';
-import Typography from '@mui/material/Typography';
-import Divider from '@mui/material/Divider';
-import IconButton from '@mui/material/IconButton';
-import MenuIcon from '@mui/icons-material/Menu';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import ListItem from '@mui/material/ListItem';
-import ListItemButton from '@mui/material/ListItemButton';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import ListItemText from '@mui/material/ListItemText';
-import InboxIcon from '@mui/icons-material/MoveToInbox';
-import MailIcon from '@mui/icons-material/Mail';
+import React, { useEffect, useState } from 'react';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Menu } from '@mui/icons-material'
+import { AppBar, IconButton, ListItem, Toolbar, Typography, Drawer, List, Box } from '@mui/material';
 import { RouteType } from './Navigator';
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { Tab, Tabs } from '@mui/material';
 
-const drawerWidth = 240;
+const NavigatorPortrait: React.FC<{routes: RouteType[]}> = ({ routes }) => {
 
-interface AppBarProps extends MuiAppBarProps {
-    open?: boolean;
-}
+    const [flOpen, setOpen] = useState<boolean>(false);
 
-const AppBar = styled(MuiAppBar, {
-    shouldForwardProp: (prop) => prop !== 'open',
-})<AppBarProps>(({ theme, open }) => ({
-    transition: theme.transitions.create(['margin', 'width'], {
-        easing: theme.transitions.easing.sharp,
-        duration: theme.transitions.duration.leavingScreen,
-    }),
-    ...(open && {
-        width: `calc(100% - ${drawerWidth}px)`,
-        marginLeft: `${drawerWidth}px`,
-        transition: theme.transitions.create(['margin', 'width'], {
-            easing: theme.transitions.easing.easeOut,
-            duration: theme.transitions.duration.enteringScreen,
-        }),
-    }),
-}));
-
-const DrawerHeader = styled('div')(({ theme }) => ({
-    display: 'flex',
-    alignItems: 'center',
-    padding: theme.spacing(0, 1),
-    // necessary for content to be below app bar
-    ...theme.mixins.toolbar,
-    justifyContent: 'flex-end',
-}));
-
-const NavigatorPortrait: React.FC<{ routes: RouteType[] }> = ({ routes }) => {
-
-    const navigate = useNavigate();
     const location = useLocation();
-    const [value, setValue] = React.useState(0);
-    React.useEffect(() => {
+    const navigate = useNavigate();
+    useEffect(() => {
         let index = routes.findIndex(r => r.to === location.pathname);
         if (index < 0) {
             index = 0;
         }
         navigate(routes[index].to);
-        setValue(index);
+
     }, [routes]);
-    const theme = useTheme();
-    const [open, setOpen] = React.useState(false);
-
-    const handleDrawerOpen = () => {
-        setOpen(true);
-    };
-
-    const handleDrawerClose = () => {
-        setOpen(false);
-    };
-
-    function onChangeFn(event: any, newValue: number) {
-        handleDrawerClose();
-        setValue(newValue);
-    }
-    function getTabs(): React.ReactNode {
-        return routes.map(r =>
-            <Tab component={NavLink} to={r.to} label={r.label} key={r.label} />
-        )
+    function getTitle(): string {
+        const route = routes.find(r => r.to === location.pathname)
+        return route ? route.label : '';
     }
 
 
-    return (
-        <Box mt={10} >
-            <CssBaseline />
-            <AppBar position="fixed" open={open} sx={{ backgroundColor: "lightgray", color: 'black' }}>
-                <Toolbar>
-                    <IconButton
-                        color="inherit"
-                        aria-label="open drawer"
-                        onClick={handleDrawerOpen}
-                        edge="start"
-                        sx={{ mr: 2, ...(open && { display: 'none' }) }}                    >
-                        <MenuIcon />
-                    </IconButton>
-                    <Typography variant="h6" noWrap component="div" >
-                        {routes[value].label}
-                    </Typography>
-                </Toolbar>
-            </AppBar>
-            <Drawer
-                sx={{
-                    width: drawerWidth,
-                    flexShrink: 0,
-                    '& .MuiDrawer-paper': {
-                        width: drawerWidth,
-                        boxSizing: 'border-box',
-                    },
-                }}
-                variant="persistent"
-                anchor="left"
-                open={open}
-            >
-                <DrawerHeader>
-                    <IconButton onClick={handleDrawerClose}>
-                        {theme.direction === 'ltr' ? <ChevronLeftIcon /> : <ChevronRightIcon />}
-                    </IconButton>
-                </DrawerHeader>
-                <Divider />
-                <Tabs value={value} orientation='vertical' onChange={onChangeFn}>
-                    {getTabs()}
-                </Tabs>
-            </Drawer>
-            <Outlet />
-        </Box>
-    );
+    function toggleOpen() {
+        setOpen(!flOpen);
+    }
+    function getListItems(): React.ReactNode {
+        return routes.map(i => <ListItem onClick={toggleOpen} 
+            component={Link} to={i.to} key={i.to}>{i.label}</ListItem>)
+    }
+    return <Box sx={{ marginTop: { xs: "15vh", sm: "20vh" } }}>
+        <AppBar position="fixed">
+            <Toolbar><IconButton onClick={toggleOpen} sx={{ color: 'white' }}>
+                <Menu />
+            </IconButton>
+                <Typography sx={{ width: "100%", textAlign: "center", fontSize: "1.5em" }}>
+                    {getTitle()}
+                </Typography>
+                <Drawer open={flOpen} onClose={toggleOpen} anchor="left">
+                    <List>
+                        {getListItems()}
+                    </List>
+                </Drawer></Toolbar>
+
+        </AppBar>
+        <Outlet></Outlet>
+    </Box>
 }
-
-export default NavigatorPortrait;
+export default NavigatorPortrait
