@@ -29,8 +29,8 @@
             "order": 1
         },
         {
-            "to": "/orders",
-            "label": "Orders",
+            "to": "/employees/generator",
+            "label": "Employees Generator",
             "order": 2
         }
     ],

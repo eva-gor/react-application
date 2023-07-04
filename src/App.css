@@ -52,3 +52,8 @@
     font-size: 1.5em;
     margin: 5px 0 0 0;
 }
+
+.data-grid-header {
+    font-style: italic;
+    font-size: 1.1em;
+}

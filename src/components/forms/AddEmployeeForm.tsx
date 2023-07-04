@@ -5,6 +5,9 @@ import employeeConfig from "../../config/employees-config.json"
 import InputResult from "../../model/InputResult";
 import { StatusType } from "../../model/StatusType";
 import Copyright from "./Copyright";
+import { useDispatch } from "react-redux";
+import { parseInputResult } from "../../utils/parse-message";
+import { codeActions } from "../../redux/slices/codeSlice";
 type Props = {
     submitFn: (empl: Employee) => Promise<InputResult>,
 
@@ -16,13 +19,13 @@ const initialEmployee: Employee = {
     gender: initialGender
 };
 export const EmployeeForm: React.FC<Props> = ({ submitFn }) => {
+    const dispatch = useDispatch();
     const { minYear, minSalary, maxYear, maxSalary, departments }
         = employeeConfig;
     const [employee, setEmployee] =
         useState<Employee>(initialEmployee);
     const [errorMessage, setErrorMessage] = useState('');
-    const [alertMessage, setAlertMessage] = useState('')
-    const severity = useRef<StatusType>('success')
+
     function handlerName(event: any) {
         const name = event.target.value;
         const emplCopy = { ...employee };
@@ -60,14 +63,15 @@ export const EmployeeForm: React.FC<Props> = ({ submitFn }) => {
             setErrorMessage("Please select gender")
         } else {
             const res = await submitFn(employee);
-            severity.current = res.status;
+            dispatch(codeActions.set(parseInputResult(res)));
             res.status == "success" && event.target.reset();
-            setAlertMessage(res.message!);
+            onResetFn(event);
         }
 
 
     }
     function onResetFn(event: any) {
+        event.preventDefault();
         setEmployee(initialEmployee);
     }
 
@@ -135,11 +139,5 @@ export const EmployeeForm: React.FC<Props> = ({ submitFn }) => {
             <Copyright />
 
         </form>
-        <Snackbar open={!!alertMessage} autoHideDuration={20000}
-            onClose={() => setAlertMessage('')}>
-            <Alert onClose={() => setAlertMessage('')} severity={severity.current} sx={{ width: '100%' }}>
-                {alertMessage}
-            </Alert>
-        </Snackbar>
     </Box>
 }

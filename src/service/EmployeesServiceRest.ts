@@ -1,6 +1,10 @@
+import { Observable } from "rxjs";
 import Employee from "../model/Employee";
 import { AUTH_DATA_JWT } from "./AuthServiceJwt";
 import EmployeesService from "./EmployeesService";
+import { subscribe } from "diagnostics_channel";
+import InputResult from "../model/InputResult";
+import { AUTHENTIFICATION } from "../App";
 
 export default class EmployeesServiceRest implements EmployeesService {
     
@@ -27,6 +31,25 @@ export default class EmployeesServiceRest implements EmployeesService {
           throw responseText ? responseText : "Server is unavailable. Repeat later on";
        }
        
+    }
+    getEmployees(): Observable<Employee[] | InputResult>{
+        const res:Observable<Employee[] | InputResult> =  new Observable((subscriber)=> {
+            fetch(this.url, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem(AUTH_DATA_JWT)}`
+                
+            }
+        }). then(response =>  {
+            let res: Promise<Employee[] | InputResult>;
+            if (response.ok){
+                res = response.json();
+            } else {
+                res = Promise.resolve(response.status == 401 || response.status == 403 ? {status:'error', message: AUTHENTIFICATION}:  {status:'error', message:response.statusText});
+            }
+            return res;
+        }). then (data => subscriber.next(data)).catch(error => subscriber.next({status: 'error', message: 'Server is unavailable, repeat later'}));
+    });
+        return res;
     }
     
 }
