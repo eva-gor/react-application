@@ -5,6 +5,7 @@ import Copyright from './Copyright';
 import { parseInputResult } from '../../utils/parse-message';
 import { codeActions } from '../../redux/slices/codeSlice';
 import { useDispatch } from 'react-redux';
+import Confirm from '../common/Confirm';
 
 type Props = {
     maxNumberEmployees: number,
@@ -12,8 +13,9 @@ type Props = {
 }
 
 const GenerationForm: React.FC<Props> = ({ maxNumberEmployees, submitFn }) => {
-    const dispatch = useDispatch();
     const initialNumber = 1;
+    const dispatch = useDispatch();
+    const [openConfirm, setOpenConfirm] = useState<boolean>(false);
     const [num, setNum] = useState<number>(initialNumber);
     const [errorNum, setErrorNum] = useState<boolean>(false);
     function onResetFn() {
@@ -24,11 +26,19 @@ const GenerationForm: React.FC<Props> = ({ maxNumberEmployees, submitFn }) => {
         if (num < initialNumber || num > maxNumberEmployees){
             setErrorNum(true);
         } else {
-            const res = await submitFn(num);
-            dispatch(codeActions.set(parseInputResult(res)));
+           setOpenConfirm(true);
         }
     }
-
+    async function agreeFn(agree: boolean) {
+        if (agree) {
+            const res = await submitFn(num);
+            if (res.status === 'success'){
+                setNum(initialNumber);
+            }
+            dispatch(codeActions.set(parseInputResult(res)));
+        } 
+        setOpenConfirm(false);
+    }
     return <Box sx={{ marginTop: { sm: "25vh" }, margin: 5 }}>
         <form onSubmit={onSubmitFn} onReset={onResetFn}>
             <Grid container spacing={4} justifyContent="center">
@@ -46,7 +56,7 @@ const GenerationForm: React.FC<Props> = ({ maxNumberEmployees, submitFn }) => {
                 <Button type="submit" >Submit</Button>
                 <Button type="reset">Reset</Button>
             </Box>
-
+            <Confirm callbackFn={agreeFn} textMessage="Are you sure you want to generate employees?" clickOpen={openConfirm} />
             <Copyright />
 
         </form>

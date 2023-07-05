@@ -15,10 +15,11 @@ import SalaryStatistics from "./components/pages/SalaryStatistics";
 import UserData from "./model/UserData";
 import EmployeesGenerator from "./components/pages/EmployeesGenerator";
 import { Alert, Box, Snackbar } from "@mui/material";
-import { codeActions } from "./redux/slices/codeSlice";
 import CodeType from "./model/CodeType";
 import { StatusType } from "../src/model/StatusType";
 import { authService } from "./config/service-config";
+import { authActions } from "./redux/slices/authSlice";
+import { useDispatch } from "react-redux";
 
 const { always, authenticated, admin, noadmin, noauthenticated } = routesConfig;
 export const AUTHENTIFICATION = 'Authentification';
@@ -53,6 +54,7 @@ function getRoutes(userData: UserData): RouteType[] {
 }
 const App: React.FC = () => {
   const userData = useSelectorAuth();
+  const dispatch = useDispatch();
   const [open, setOpen] = useState(false);
   const code = useSelectorCode();
   const [alertMessage, severity] = useMemo(() => codeProcessing(), [code]);
@@ -61,14 +63,20 @@ const App: React.FC = () => {
     let codeType = code.code;
     const codeSeverity: StatusType = codeType === CodeType.OK ? "success" : "error";
     code.message && setOpen(true);
-    if (code.message == AUTHENTIFICATION) authService.logout();
+    if (code.message == AUTHENTIFICATION) {
+      authService.logout();
+      dispatch(authActions.reset());
+    }
     return [code.message, codeSeverity];
+  }
+  function onClose(){
+    setOpen(false)
   }
   return <Box>
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<NavigatorDispatcher routes={routes} />}>
-          <Route index element={<Employees />} />
+          <Route index element={<Employees />} /> 
           <Route path="employees/add" element={<AddEmployee />} />
           <Route path="employees/generator" element={<EmployeesGenerator />} />
           <Route path="statistics/age" element={<AgeStatistics />} />
@@ -80,8 +88,8 @@ const App: React.FC = () => {
       </Routes>
     </BrowserRouter>
     <Snackbar open={open} autoHideDuration={10000}
-      onClose={() => setOpen(false)}>
-      <Alert onClose={() => setOpen(false)} severity={severity} sx={{ width: '100%' }}>
+      onClose={onClose}>
+      <Alert onClose={onClose} severity={severity} sx={{ width: '100%' }}>
         {alertMessage}
       </Alert>
     </Snackbar>

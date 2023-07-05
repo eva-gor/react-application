@@ -3,14 +3,14 @@ import { FormControl, Grid, TextField, InputLabel, Select, Box, MenuItem, Button
 import Employee from "../../model/Employee";
 import employeeConfig from "../../config/employees-config.json"
 import InputResult from "../../model/InputResult";
-import { StatusType } from "../../model/StatusType";
 import Copyright from "./Copyright";
-import { useDispatch } from "react-redux";
-import { parseInputResult } from "../../utils/parse-message";
+import Confirm from "../common/Confirm";
 import { codeActions } from "../../redux/slices/codeSlice";
+import { parseInputResult } from "../../utils/parse-message";
+import { useDispatch } from "react-redux";
 type Props = {
     submitFn: (empl: Employee) => Promise<InputResult>,
-
+    existedEmployee?: Employee
 }
 const initialDate: any = 0;
 const initialGender: any = '';
@@ -18,13 +18,19 @@ const initialEmployee: Employee = {
     id: 0, birthDate: initialDate, name: '', department: '', salary: 0,
     gender: initialGender
 };
-export const EmployeeForm: React.FC<Props> = ({ submitFn }) => {
+export const EmployeeForm: React.FC<Props> = ({ submitFn, existedEmployee }) => {
+    const [openConfirm, setOpenConfirm] = useState<boolean>(false);
     const dispatch = useDispatch();
-    const { minYear, minSalary, maxYear, maxSalary, departments }
+    const { maxYear, minYear, departments }
         = employeeConfig;
+    let { maxSalary, minSalary } = employeeConfig;
+    minSalary *= 1000;
+    maxSalary *= 1000;
     const [employee, setEmployee] =
-        useState<Employee>(initialEmployee);
+        useState<Employee>(existedEmployee ? existedEmployee : initialEmployee);
     const [errorMessage, setErrorMessage] = useState('');
+
+    const fractions = existedEmployee ? {}: {xs:8, md:5, lg:4, xl: 3}
 
     function handlerName(event: any) {
         const name = event.target.value;
@@ -62,24 +68,35 @@ export const EmployeeForm: React.FC<Props> = ({ submitFn }) => {
         if (!employee.gender) {
             setErrorMessage("Please select gender")
         } else {
-            const res = await submitFn(employee);
-            dispatch(codeActions.set(parseInputResult(res)));
-            res.status == "success" && event.target.reset();
-            onResetFn(event);
+            setOpenConfirm(true);
         }
 
-
+    }
+    async function agreeFn(agree: boolean) {
+        setOpenConfirm(false);
+        if (agree) {
+            const res = await submitFn(employee);
+            if (res.status === 'success') {
+                setEmployee(initialEmployee);
+            }
+            dispatch(codeActions.set(parseInputResult(res)));
+        }
     }
     function onResetFn(event: any) {
         event.preventDefault();
         setEmployee(initialEmployee);
     }
 
-    return <Box sx={{ marginTop: { sm: "25vh" }, margin:5}}>
+    return <Box sx={{ marginTop: 5, marginLeft: '3vw', marginRight:'auto' }}>
         <form onSubmit={onSubmitFn} onReset={onResetFn}>
-            <Grid container spacing={4} justifyContent="center">
-                <Grid item xs={8} sm={5} >
-                    <FormControl fullWidth required>
+            <Grid container spacing={4} justifyContent= {existedEmployee ? "left":"center"} >
+                <Grid item {...fractions} >
+                    <TextField type="text" required sx={{width: '300px'}} label="Employee name"
+                        helperText="enter Employee name" onChange={handlerName}
+                        value={employee.name} />
+                </Grid>
+                <Grid item {...fractions} >
+                    <FormControl sx={{width: '300px'}} required>
                         <InputLabel id="select-department-id">Department</InputLabel>
                         <Select labelId="select-department-id" label="Department"
                             value={employee.department} onChange={handlerDepartment}>
@@ -88,33 +105,28 @@ export const EmployeeForm: React.FC<Props> = ({ submitFn }) => {
                         </Select>
                     </FormControl>
                 </Grid>
-                <Grid item xs={8} sm={5} >
-                    <TextField type="text" required fullWidth label="Employee name"
-                        helperText="enter Employee name" onChange={handlerName}
-                        value={employee.name} />
-                </Grid>
-                <Grid item xs={8} sm={4} md={5}>
-                    <TextField type="date" required fullWidth label="birthDate"
+                <Grid item {...fractions}>
+                    <TextField type="date" required sx={{width: '300px'}} label="birthDate"
+                        disabled={existedEmployee ? true : false}
                         value={employee.birthDate ? employee.birthDate.toISOString()
                             .substring(0, 10) : ''} inputProps={{
-
                                 min: `${minYear}-01-01`,
                                 max: `${maxYear}-12-31`
                             }} InputLabelProps={{
                                 shrink: true
                             }} onChange={handlerBirthdate} />
                 </Grid>
-                <Grid item xs={8} sm={4} md={5} >
-                    <TextField label="salary" fullWidth required
+                <Grid item {...fractions} >
+                    <TextField label="salary" sx={{width: '300px'}} required
                         type="number" onChange={handlerSalary}
                         value={employee.salary || ''}
-                        helperText={`enter salary in range [${minSalary}-${maxSalary}]`}
+                        helperText={`Enter salary in range [${minSalary}-${maxSalary}]`}
                         inputProps={{
                             min: `${minSalary}`,
                             max: `${maxSalary}`
                         }} />
                 </Grid>
-                <Grid item xs={8} sm={4} md={5}>
+                <Grid item {...fractions} >
                     <FormControl required error={!!errorMessage}>
                         <FormLabel id="gender-group-label">Gender</FormLabel>
                         <RadioGroup
@@ -124,20 +136,22 @@ export const EmployeeForm: React.FC<Props> = ({ submitFn }) => {
                             name="radio-buttons-group"
                             row onChange={genderHandler}
                         >
-                            <FormControlLabel value="female" control={<Radio />} label="Female" />
-                            <FormControlLabel value="male" control={<Radio />} label="Male" />
+                            <FormControlLabel value="female" control={<Radio />} label="Female" disabled={existedEmployee ? true : false} />
+                            <FormControlLabel value="male" control={<Radio />} label="Male" disabled={existedEmployee ? true : false} />
                             <FormHelperText>{errorMessage}</FormHelperText>
                         </RadioGroup>
                     </FormControl>
                 </Grid>
             </Grid>
             <Box sx={{ marginTop: { xs: "10vh", sm: "5vh" }, textAlign: "center" }}>
-                <Button type="submit" >Submit</Button>
+                <Button type="submit">Submit</Button>
                 <Button type="reset">Reset</Button>
             </Box>
+            <Confirm callbackFn={agreeFn} textMessage="Are you sure you want to add employee?" clickOpen={openConfirm} />
 
             <Copyright />
 
         </form>
     </Box>
 }
+

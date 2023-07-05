@@ -83,7 +83,6 @@ const SignInForm: React.FC<Props> = ({ submitFn }) => {
                                     type="submit"
                                     fullWidth
                                     variant="contained"
-                                   
                                 >
                                     Sign In
                                 </Button>

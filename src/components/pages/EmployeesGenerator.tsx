@@ -2,16 +2,14 @@ import {Typography} from "@mui/material"
 import GenerationForm from "../forms/GenerationForm";
 import InputResult from "../../model/InputResult";
 import Employee from "../../model/Employee";
-import { authService, employeesService } from "../../config/service-config";
-import { authActions } from "../../redux/slices/authSlice";
-import { useDispatch } from "react-redux";
+import { employeesService } from "../../config/service-config";
 import { getRandomEmployee, getRandomInt } from "../../utils/random";
-import config from '../../config/employees-config.json'
+import config from '../../config/employees-config.json';
+import { AUTHENTIFICATION } from "../../App";
 
 const {minSalary, maxSalary, minYear, maxYear, departments} = config;
 const EmployeesGenerator: React.FC = ()=>
 {
-    const dispatch = useDispatch();
     async function addEmpl(empl: Employee): Promise<InputResult> {
         const res: InputResult = {status: 'success', message: ''};
         try {
@@ -19,13 +17,11 @@ const EmployeesGenerator: React.FC = ()=>
             res.message = `employee with id: ${employee.id} has been added`
         } catch (error: any) {
            res.status = 'error' ;
-           if((typeof(error) == 'string') && error.includes('Authentication')) {
-            authService.logout();
-            dispatch(authActions.reset());
-            res.message = ""
+           if((typeof(error) == 'string') && error.includes(AUTHENTIFICATION)) {
+            res.message = "";
            }
            res.message = error;
-        }
+        } 
         return res;
     }
     async function submitFn(num:number): Promise<InputResult>{
@@ -40,9 +36,9 @@ const EmployeesGenerator: React.FC = ()=>
         }
         return res;
     }
-return <Typography variant="h4" align="center">
+return  <Typography variant="h4" align="center">
 <GenerationForm maxNumberEmployees={10} submitFn={submitFn}/>
-</Typography>
+</Typography> 
 }
 export default EmployeesGenerator;
 

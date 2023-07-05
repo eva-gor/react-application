@@ -1,12 +1,10 @@
 import Employee from "../../model/Employee";
 import { EmployeeForm } from "../forms/AddEmployeeForm";
 import InputResult from "../../model/InputResult";
-import { authService, employeesService } from "../../config/service-config";
-import { useDispatch } from "react-redux";
-import { authActions } from "../../redux/slices/authSlice";
+import { employeesService } from "../../config/service-config";
+import { AUTHENTIFICATION } from "../../App";
 
 const AddEmployee: React.FC = () => {
-    const dispatch = useDispatch();
     async function submitFn(empl: Employee): Promise<InputResult> {
         const res: InputResult = {status: 'success', message: ''};
         try {
@@ -14,16 +12,14 @@ const AddEmployee: React.FC = () => {
             res.message = `employee with id: ${employee.id} has been added`
         } catch (error: any) {
            res.status = 'error' ;
-           if((typeof(error) == 'string') && error.includes('Authentication')) {
-            authService.logout();
-            dispatch(authActions.reset());
-            res.message = ""
+           if((typeof(error) == 'string') && error.includes(AUTHENTIFICATION)) {
+            res.message = "";
            }
            res.message = error;
-        }
+        } 
         return res;
     }
-    return <EmployeeForm submitFn={submitFn}/>
+    return  <EmployeeForm submitFn={submitFn}/> 
 }
 export default AddEmployee;
 

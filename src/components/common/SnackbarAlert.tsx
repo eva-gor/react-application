@@ -14,10 +14,14 @@ const SnackbarAlert: React.FC<Props> = ({message, duration, severity}) => {
     useEffect(() => {
         message && setOpen(true);
         alertMessage.current = message;
-    }, [message])
+    }, [message]);
+
+    function onClose(){
+        setOpen(false);
+    }
     return <Snackbar open={open} autoHideDuration={duration || DEFAULT_DURATION}
-                     onClose={() => setOpen(false)}>
-                        <Alert  onClose = {() => setOpen(false)} severity={severity} sx={{ width: '100%' }}>
+                     onClose={onClose}>
+                        <Alert  onClose = {onClose} severity={severity} sx={{ width: '100%' }}>
                             {message}
                         </Alert>
                     </Snackbar>
