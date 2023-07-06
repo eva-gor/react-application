@@ -22,13 +22,10 @@ const Navigator: React.FC<{ routes: RouteType[] }> = ({routes}) => {
     function getTabs(): ReactNode {
         return routes.map(r => <Tab component={NavLink} to={r.to} label={r.label} key={r.label}/>)
     }
-    return <Box mt={10}>
-       <AppBar sx={{backgroundColor:"lightgray"}}> 
+    return <AppBar sx={{backgroundColor:"lightgray", mt:0}}> 
             <Tabs value={value < routes.length? value: 0} onChange={onChangeFn}>
                 {getTabs()}
             </Tabs>
         </AppBar> 
-        <Outlet></Outlet>
-    </Box>
 }
 export default Navigator;

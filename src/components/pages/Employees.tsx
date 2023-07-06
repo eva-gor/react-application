@@ -20,7 +20,7 @@ const columns: GridColDef[] = [
   { field: 'name', headerName: 'Name', editable: false, headerClassName: 'data-grid-header', align: 'center', headerAlign: 'center', flex: 0.7 },
   { field: 'birthDate', headerName: 'Birth Date', editable: false, flex: 1.5, headerClassName: 'data-grid-header', align: 'center', headerAlign: 'center', type: 'date' },
   { field: 'gender', headerName: 'Gender', editable: false, headerClassName: 'data-grid-header', align: 'center', headerAlign: 'center', flex: 0.6 },
-  { field: 'department', headerName: 'Department', width: 120, headerClassName: 'data-grid-header', align: 'center', headerAlign: 'center', editable: false, flex: 0.8 },
+  { field: 'department', headerName: 'Department', headerClassName: 'data-grid-header', align: 'center', headerAlign: 'center', editable: false, flex: 0.8 },
   { field: 'salary', headerName: 'Salary', editable: false, headerClassName: 'data-grid-header', align: 'center', headerAlign: 'center', type: 'number'}
 ];
 const defaultEmployee: Employee = { name: '', birthDate: new Date(), department: '', gender: 'female', salary: 0 }
@@ -64,7 +64,6 @@ const Employees: React.FC = () => {
     };
     if (role === 'admin') {
       columns.push(rowActions);
-      columns.length = columnsLength + 1;
     } else {
       columns.length = columnsLength;
     }
@@ -116,6 +115,7 @@ const Employees: React.FC = () => {
         const employee = await employeesService.updateEmployee(empl);
         res.message = `Employee was updated: ${employee.name}, ${employee.id}`;
         res.status = "success";
+        onCloseFn();
       } catch (error: any) {
         res.status = 'error';
         if ((typeof (error) == 'string') && error.includes(AUTHENTIFICATION)) {
@@ -124,7 +124,6 @@ const Employees: React.FC = () => {
         res.message = error;
       } finally {
         dispatch(codeActions.set(parseInputResult(res)));
-        onCloseFn();
       }
     }
     return res;

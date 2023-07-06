@@ -31,7 +31,7 @@ const NavigatorPortrait: React.FC<{routes: RouteType[]}> = ({ routes }) => {
         return routes.map(i => <ListItem onClick={toggleOpen} 
             component={Link} to={i.to} key={i.to}>{i.label}</ListItem>)
     }
-    return <Box sx={{ marginTop: { xs: "15vh", sm: "20vh" } }}>
+    return <Box sx={{ marginTop: { xs: "10vh" } }}>
         <AppBar position="fixed">
             <Toolbar><IconButton onClick={toggleOpen} sx={{ color: 'white' }}>
                 <Menu />
@@ -46,7 +46,7 @@ const NavigatorPortrait: React.FC<{routes: RouteType[]}> = ({ routes }) => {
                 </Drawer></Toolbar>
 
         </AppBar>
-        <Outlet></Outlet>
+        
     </Box>
 }
 export default NavigatorPortrait
