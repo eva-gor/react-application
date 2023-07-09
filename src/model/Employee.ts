@@ -5,6 +5,7 @@ type Employee = {
     department: string,
     salary: number,
     gender: 'male'|'female'
-}
 
+
+}
 export default Employee;

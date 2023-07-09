@@ -1,102 +1,127 @@
-import { Observable, map } from "rxjs";
+import { Observable, Subscriber } from "rxjs";
 import Employee from "../model/Employee";
 import { AUTH_DATA_JWT } from "./AuthServiceJwt";
 import EmployeesService from "./EmployeesService";
-import InputResult from "../model/InputResult";
-import { AUTHENTIFICATION } from "../App";
-import { getDateDiff } from "../utils/date-functions";
-import { count } from "../utils/number-functions";
-import StatisticsDataType from "../model/StatisticsDataType";
-
-export default class EmployeesServiceRest implements EmployeesService {
-
-    constructor(private url: string) { }
-    async addEmployee(empl: Employee): Promise<Employee> {
-        const headers = {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${localStorage.getItem(AUTH_DATA_JWT) || ''}`
-            },
-            body: JSON.stringify({ ...empl, userId: 'admin' })
-        };
-        return this.request(headers);
+const POLLER_INTERVAL = 3000;
+class Cache {
+    cacheString: string = '';
+    set(employees: Employee[]): void {
+        this.cacheString = JSON.stringify(employees);
     }
-    getEmployees(): Observable<Employee[] | InputResult> {
-        const res: Observable<Employee[] | InputResult> = new Observable((subscriber) => {
-            fetch(this.url, {
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem(AUTH_DATA_JWT)}`
+    reset() {
+        this.cacheString = ''
+    }
+    isEqual(employees: Employee[]): boolean {
+        return this.cacheString === JSON.stringify(employees)
+    }
+    getCache(): Employee[] {
+        return !this.isEmpty() ? JSON.parse(this.cacheString) : []
+    }
+    isEmpty(): boolean {
+        return this.cacheString.length === 0;
+    }
+}
+function getResponseText(response: Response): string {
+    let res = '';
+    if (!response.ok) {
+        const { status, statusText } = response;
+        res = status == 401 || status == 403 ? 'Authentication' : statusText;
+    }
+    return res;
 
-                }
-            }).then(response => {
-                let res: Promise<Employee[] | InputResult>;
-                if (response.ok) {
-                    res = response.json();
-                } else {
-                    res = Promise.resolve(response.status == 401 || response.status == 403 ? { status: 'error', message: AUTHENTIFICATION } : { status: 'error', message: response.statusText });
-                }
-                return res;
-            }).then(data => subscriber.next(data)).catch(error => subscriber.next({ status: 'error', message: 'Server is unavailable, repeat later' }));
-        });
-        return res;
+}
+function getHeaders(): HeadersInit {
+    const res: HeadersInit = {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localStorage.getItem(AUTH_DATA_JWT) || ''}`
     }
-    async deleteEmployee(id: any): Promise<void> {
-        const headers = {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${localStorage.getItem(AUTH_DATA_JWT) || ''}`
-            },
-            body: JSON.stringify({ userId: 'admin' })
-        };
-        return this.request(headers, id);
-    }
-    async updateEmployee(empl: Employee): Promise<Employee> {
-        const headers = {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${localStorage.getItem(AUTH_DATA_JWT) || ''}`
-            },
-            body: JSON.stringify({ ...empl, userId: 'admin' })
-        };
-        return this.request(headers, empl.id);
+    return res;
+}
+async function fetchRequest(url: string, options: RequestInit, empl?: Employee): Promise<Response> {
+    options.headers = getHeaders();
+    if (empl) {
+        options.body = JSON.stringify(empl);
     }
 
-    private async request(headers: RequestInit, endUrl = ''): Promise<any> {
-        let responseText = '';
-        try {
-            const response = await fetch(this.url + '/' + endUrl, headers);
-            if (!response.ok) {
-                const { status, statusText } = response;
-                responseText = status == 401 || status == 403 ? AUTHENTIFICATION : statusText;
-                throw responseText;
-            }
-            return await response.json();
-        } catch (error: any) {
-
-            throw responseText ? responseText : "Server is unavailable. Repeat later on";
+    let flUpdate = true;
+    let responseText = '';
+    try {
+        if (options.method == "DELETE" || options.method == "PUT") {
+            flUpdate = false;
+            await fetchRequest(url, {method: "GET"});
+            flUpdate = true;
         }
 
+        const response = await fetch(url, options);
+        responseText = getResponseText(response);
+        if (responseText) {
+            throw responseText;
+        }
+        return response;
+    } catch (error: any) {
+        if (!flUpdate) {
+            throw error;
+        }
+        throw responseText ? responseText : "Server is unavailable. Repeat later on";
+    }
+}
+async function fetchAllEmployees(url: string):Promise< Employee[]|string> {
+    const response = await fetchRequest(url, {});
+    return await response.json()
+}
+
+export default class EmployeesServiceRest implements EmployeesService {
+    private observable: Observable<Employee[] | string> | null = null;
+    private cache: Cache = new Cache();
+    constructor(private url: string) { }
+    async updateEmployee(empl: Employee): Promise<Employee> {
+        const response = await fetchRequest(this.getUrlWithId(empl.id!),
+            { method: 'PUT' }, empl);
+
+        return await response.json();
+
+    }
+    private getUrlWithId(id: any): string {
+        return `${this.url}/${id}`;
+    }
+    private sibscriberNext(url: string, subscriber: Subscriber<Employee[] | string>): void {
+        
+        fetchAllEmployees(url).then(employees => {
+            if (this.cache.isEmpty() || !this.cache.isEqual(employees as Employee[])) {
+                this.cache.set(employees as Employee[]);
+                subscriber.next(employees);
+            }
+            
+        })
+        .catch(error => subscriber.next(error));
+    }
+    async deleteEmployee(id: any): Promise<void> {
+            const response = await fetchRequest(this.getUrlWithId(id), {
+                method: 'DELETE',
+            });
+            return await response.json();
+    }
+    getEmployees(): Observable<Employee[] | string> {
+        let intervalId: any;
+        if (!this.observable) {
+            this.observable = new Observable<Employee[] | string>(subscriber => {
+                this.cache.reset();
+                this.sibscriberNext(this.url, subscriber);
+                intervalId = setInterval(() => this.sibscriberNext(this.url, subscriber), POLLER_INTERVAL);
+                return () => clearInterval(intervalId)
+            })
+        }
+        return this.observable;
+    }
+       
+    async addEmployee(empl: Employee): Promise<Employee> {
+       
+            const response = await fetchRequest(this.url, {
+                method: 'POST',
+               }, {...empl, userId: "admin"} as any)
+           ;
+           return response.json();
+
     }
 
-    getStatistics(field: string, interval: number): Observable<StatisticsDataType[] | InputResult> {
-        return this.getEmployees().pipe(map((emplArray) => {
-            if (Array.isArray(emplArray)) {
-                let array: any;
-                if (field == 'age') {
-                    array = emplArray!.map(e => ({ 'age': getDateDiff(e.birthDate, new Date()) }));
-                    field = 'age';
-                }
-                const statisticsObj: number[] = count(array ? array : emplArray, field, interval);
-                return Object.entries(statisticsObj).map((e, index) => {
-                    const min: number = (+e[0]) * interval;
-                    const max = min + interval - 1;
-                    return { id: index, min, max, count: e[1] };
-                })
-            } else return emplArray;
-        }));
-
-    }
 }

@@ -1,25 +1,26 @@
 import Employee from "../../model/Employee";
-import { EmployeeForm } from "../forms/AddEmployeeForm";
+import { EmployeeForm } from "../forms/EmployeeForm";
 import InputResult from "../../model/InputResult";
-import { employeesService } from "../../config/service-config";
-import { AUTHENTIFICATION } from "../../App";
+import { authService, employeesService } from "../../config/service-config";
+
+import { useDispatchCode } from "../../hooks/hooks";
 
 const AddEmployee: React.FC = () => {
+     let successMessage: string = '';
+        let errorMessage = '';
+        const dispatch = useDispatchCode();
     async function submitFn(empl: Employee): Promise<InputResult> {
+       
         const res: InputResult = {status: 'success', message: ''};
         try {
             const employee: Employee = await employeesService.addEmployee(empl);
-            res.message = `employee with id: ${employee.id} has been added`
+            successMessage = `employee with id: ${employee.id} has been added`
         } catch (error: any) {
-           res.status = 'error' ;
-           if((typeof(error) == 'string') && error.includes(AUTHENTIFICATION)) {
-            res.message = "";
-           }
-           res.message = error;
-        } 
+           errorMessage = error;
+        }
+        dispatch(errorMessage, successMessage);
         return res;
     }
-    return  <EmployeeForm submitFn={submitFn}/> 
+    return <EmployeeForm submitFn={submitFn}/>
 }
 export default AddEmployee;
-

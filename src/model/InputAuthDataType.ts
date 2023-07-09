@@ -1,1 +1,0 @@
-export type InputAuthDataType = {username:string, password:string};

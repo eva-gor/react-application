@@ -1,6 +1,6 @@
 import { AppBar, Box, Tab, Tabs } from '@mui/material';
 import { ReactNode, useEffect, useState } from 'react';
-import { NavLink, Outlet, useLocation, useNavigate} from 'react-router-dom'
+import { Link, NavLink, Outlet, useLocation, useNavigate} from 'react-router-dom'
 export type RouteType = {
     to: string, label: string
 }
@@ -22,10 +22,13 @@ const Navigator: React.FC<{ routes: RouteType[] }> = ({routes}) => {
     function getTabs(): ReactNode {
         return routes.map(r => <Tab component={NavLink} to={r.to} label={r.label} key={r.label}/>)
     }
-    return <AppBar sx={{backgroundColor:"lightgray", mt:0}}> 
-            <Tabs value={value < routes.length? value: 0} onChange={onChangeFn}>
+    return <Box mt={10}>
+       <AppBar sx={{backgroundColor:"lightgray"}}> 
+            <Tabs value={value < routes.length ? value : 0} onChange={onChangeFn}>
                 {getTabs()}
             </Tabs>
         </AppBar> 
+        <Outlet></Outlet>
+    </Box>
 }
 export default Navigator;

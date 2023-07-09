@@ -1,58 +1,62 @@
-import { Box, Grid } from "@mui/material";
-import { DataGrid, GridColDef } from "@mui/x-data-grid";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
-import StatisticsDataType from "../../model/StatisticsDataType";
-
-
-
-const columns: GridColDef[] = [
-    { field: 'id', headerName: 'ID', headerClassName: 'data-grid-header', align: 'center', headerAlign: 'center', editable: false, type: 'number', sortable: false  },
-    { field: 'min', headerName: 'Min', headerClassName: 'data-grid-header', align: 'center', headerAlign: 'center', flex: 1, sortable: false },
-    { field: 'max', headerName: 'Max', headerClassName: 'data-grid-header', align: 'center', headerAlign: 'center', flex: 1, sortable: false },
-    { field: 'count', headerName: 'Quantity', headerClassName: 'data-grid-header', align: 'center', headerAlign: 'center', flex: 1, sortable: false }
-];
+import { Box, Container, Grid, FormControl, Select, InputLabel, MenuItem, Typography } from "@mui/material";
+import {DataGrid, GridColDef} from '@mui/x-data-grid';
+import { useRef } from "react";
+import Chart from "./Chart";
+export type StatisticsType = {
+    id: any;
+    min: number;
+    max: number;
+    amount: number
+}[]
 type Props = {
-    data: StatisticsDataType[]
+    title: string;
+    intervalOptions: number[];
+    data: StatisticsType;
+    submitFn: (interval: number)=>void
+
 }
-const Statistics: React.FC<Props> = ({ data }) => {
-    const dataChart = data.map(q => { return { name: `${q.min} - ${q.max}`, field: q.count } });
-    const renderBarChart = ( 
-        <BarChart width={100*data.length} height={300} data={dataChart} style={{margin: 'auto'}}>
-            <XAxis dataKey="name" stroke="#8884d8" fontSize={20} />
-            <YAxis fontSize={20} />
-            <Tooltip />
-            <CartesianGrid stroke="#ccc" strokeDasharray="5 5" />
-            <Bar dataKey="field" fill="#8884d8" barSize={60} />
-        </BarChart>        
-    );
+const columns: GridColDef[] = [
+    {field: "min", sortable: false, headerName: "Min ",type:"number",
+     headerClassName: 'data-grid-header', align: 'center', headerAlign: 'center', flex:0.5},
+    {field: "max", sortable: false, headerName: "Max ", type:"number",
+    headerClassName: 'data-grid-header', align: 'center', headerAlign: 'center', flex: 0.5},
+    {field: "amount", sortable: false, headerName: "Amount", type:"number",
+    headerClassName: 'data-grid-header', align: 'center', headerAlign: 'center', flex: 0.5}
+]
+const Statistics: React.FC<Props> = ({intervalOptions, submitFn, title, data}) => {
+    const intervalValue = useRef(intervalOptions[0]);
+    function handlerInterval(event: any) {
+        const value: number = +event.target.value;
+        intervalValue.current = value;
+        submitFn(value);
+    }
 
-    return (
-            <Grid container spacing={2} >
-                <Grid item xs={12} lg={6}>
-                    {renderBarChart}
+  return <Container >
 
-                </Grid>
-                <Grid item xs={12} lg={6}>
-                    <Box >
-                        <DataGrid
-                            sx={{ marginInline: '30px' }}
-                            rows={data}
-                            columns={columns}
-                            initialState={{
-                                pagination: {
-                                    paginationModel: {
-                                        pageSize: 10,
-                                    },
-                                },
-                            }}
-                            pageSizeOptions={[10]}
-                            checkboxSelection
-                            disableRowSelectionOnClick
-                        />
-                    </Box>
-                </Grid>
+        <Grid container justifyContent={'center'} spacing={1} >
+            
+            <Grid item xs={8}>
+            <FormControl fullWidth required>
+                        <InputLabel id="select-interval-id">Interval Value</InputLabel>
+                        <Select labelId="select-interval-id" label="Distribution"
+                             onChange={handlerInterval} value={intervalValue.current}>
+                            {intervalOptions.map(o => <MenuItem value={o} key={o}>{o}</MenuItem>)}
+                        </Select>
+                    </FormControl>
             </Grid>
-    );
+            <Grid item xs={12} sm={6}>
+                <Box sx={{width: "100%",
+                 height: {xs: "30vh", sm: "60vh"}}}>
+                    <DataGrid columns={columns} rows={data} rowHeight={20}/>
+                </Box>
+            </Grid>
+            <Grid item xs={8} sm={6}>
+                <Box sx={{width: "80%", height: "40vh"}}>
+                    <Chart  yAxis={"Employees"}
+                     data={data.map(s => ({key: s.min, amount: s.amount}))} dataKey={"key"} />
+                </Box>
+            </Grid>
+        </Grid>
+  </Container>
 }
-
 export default Statistics;

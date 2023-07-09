@@ -3,6 +3,9 @@ import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Checkbox from '@mui/material/Checkbox';
+import Link from '@mui/material/Link';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
@@ -11,24 +14,40 @@ import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import LoginData from '../../model/LoginData';
 import InputResult from '../../model/InputResult';
-import { useDispatch } from 'react-redux';
-import { codeActions } from '../../redux/slices/codeSlice';
-import { parseInputResult } from '../../utils/parse-message';
-import Copyright from './Copyright';
+import { Alert, Snackbar } from '@mui/material';
+import { StatusType } from '../../model/StatusType';
 
+function Copyright(props: any) {
+    return (
+        <Typography variant="body2" color="text.secondary" align="center" {...props}>
+            {'Copyright © '}
+            <Link color="inherit" href="https://tel-ran.com/">
+                Tel-Ran
+            </Link>{' '}
+            {new Date().getFullYear()}
+            {'.'}
+        </Typography>
+    );
+}
+
+// TODO remove, this demo shouldn't need to reset the theme.
 const defaultTheme = createTheme();
 type Props = {
     submitFn: (loginData: LoginData) => Promise<InputResult>
 }
 const SignInForm: React.FC<Props> = ({ submitFn }) => {
-    const dispatch = useDispatch();
+    const message = React.useRef<string>('');
+    const [open, setOpen] = React.useState(false);
+    const severity = React.useRef<StatusType>('success');
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         const data = new FormData(event.currentTarget);
         const email: string = data.get('email')! as string;
         const password: string = data.get('password')! as string;
         const result = await submitFn({ email, password });
-        dispatch(codeActions.set(parseInputResult(result)));
+        message.current = result.message!;
+        severity.current = result.status;
+        message.current && setOpen(true);
     };
 
     return (
@@ -83,15 +102,26 @@ const SignInForm: React.FC<Props> = ({ submitFn }) => {
                                     type="submit"
                                     fullWidth
                                     variant="contained"
+                                   
                                 >
                                     Sign In
                                 </Button>
                             </Grid>
                         </Grid>
 
+
+
+
+
                     </Box>
+                    <Snackbar open={open} autoHideDuration={10000}
+                        onClose={() => setOpen(false)}>
+                        <Alert onClose={() => setOpen(false)} severity={severity.current} sx={{ width: '100%' }}>
+                            {message.current}
+                        </Alert>
+                    </Snackbar>
                 </Box>
-                <Copyright />
+                <Copyright sx={{ mt: 4, mb: 4 }} />
             </Container>
         </ThemeProvider>
     );

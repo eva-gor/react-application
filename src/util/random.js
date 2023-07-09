@@ -19,11 +19,11 @@ export function getRandomEmployee(minSalary, maxSalary, minYear, maxYear, depart
    const gender = getRandomElement(['male', 'female']);
    const name = getRandomElement(gender == 'female' ? names.femaleNames :
     names.maleNames);
-    const birthYear = getRandomInt(minYear, maxYear + 1);
+    const birthDate = getRandomDate(minYear, maxYear + 1);
     const salary = Math.round(getRandomInt(minSalary, maxSalary) / 1000) * 1000;
     const department = getRandomElement(departments);
     return {
-         name, birthYear, gender,
+         name, birthDate, gender,
         salary, department};
 }
 export function getRandomMatrix(rows, columns, min, max) {
@@ -31,4 +31,10 @@ export function getRandomMatrix(rows, columns, min, max) {
 }
 export function getRandomArrayIntNumbers(nNumbers, min, max) {
     return Array.from({length: nNumbers}).map(() => getRandomInt(min, max))
+}
+export function getRandomDate(minYear, maxYear) {
+    const year = getRandomInt(minYear, maxYear + 1);
+    const month = getRandomInt(0, 12);
+    const day = getRandomInt(1, 32);
+    return new Date(year, month, day);
 }
