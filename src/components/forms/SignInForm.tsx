@@ -14,8 +14,12 @@ import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import LoginData from '../../model/LoginData';
 import InputResult from '../../model/InputResult';
-import { Alert, Snackbar } from '@mui/material';
+import { Alert, Divider, Snackbar } from '@mui/material';
 import { StatusType } from '../../model/StatusType';
+import { VerticalAlignCenter } from '@mui/icons-material';
+import { getAuth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import appFirebase from '../../config/firebase-config';
+import NetworkType from '../../model/NetworkType';
 
 function Copyright(props: any) {
     return (
@@ -33,9 +37,11 @@ function Copyright(props: any) {
 // TODO remove, this demo shouldn't need to reset the theme.
 const defaultTheme = createTheme();
 type Props = {
-    submitFn: (loginData: LoginData) => Promise<InputResult>
+    submitFn: (loginData: LoginData) => Promise<InputResult>,
+    googleAuth?: boolean,
+    providers? : NetworkType[]
 }
-const SignInForm: React.FC<Props> = ({ submitFn }) => {
+const SignInForm: React.FC<Props> = ({ submitFn, googleAuth = false, providers}) => {
     const message = React.useRef<string>('');
     const [open, setOpen] = React.useState(false);
     const severity = React.useRef<StatusType>('success');
@@ -49,15 +55,27 @@ const SignInForm: React.FC<Props> = ({ submitFn }) => {
         severity.current = result.status;
         message.current && setOpen(true);
     };
-
+    async function signinGoogleFn() {
+        await submitFn({ email: 'GOOGLE', password: '' })
+    }
+    const anotherAuthorization = googleAuth ? <Grid item xs={12} container justifyContent={'center'} sx={{ display: 'flex', alignItems: 'center' }}>
+        <Divider sx={{width: '100%'}}>or </Divider>
+        {
+            providers && providers.map(provider => <Button variant="outlined" sx={{width: '100%'}} startIcon={<Avatar src={provider.providerIconUrl}
+            sx={{ aspectRatio: '1/ 1', height: '100%', alignItems: 'center' }} />} onClick={signinGoogleFn}>Sign in with {provider.providerName}</Button>)
+            
+        }
+        
+    </Grid>
+        : '';
     return (
         <ThemeProvider theme={defaultTheme}>
             <Container component="main" maxWidth="xs">
                 <CssBaseline />
                 <Box
                     sx={{
-                        marginTop: {xs: 8, sm:-4, md: 8},
-                       
+                        marginTop: { xs: 8, sm: -4, md: 8 },
+
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
@@ -81,7 +99,7 @@ const SignInForm: React.FC<Props> = ({ submitFn }) => {
                                     name="email"
                                     autoComplete="email"
                                     autoFocus
-                                    
+
                                 />
                             </Grid>
                             <Grid item xs={12} sm={6} md={12}>
@@ -102,16 +120,13 @@ const SignInForm: React.FC<Props> = ({ submitFn }) => {
                                     type="submit"
                                     fullWidth
                                     variant="contained"
-                                   
+
                                 >
                                     Sign In
                                 </Button>
                             </Grid>
+                            {anotherAuthorization}
                         </Grid>
-
-
-
-
 
                     </Box>
                     <Snackbar open={open} autoHideDuration={10000}

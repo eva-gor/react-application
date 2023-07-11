@@ -3,24 +3,25 @@ import { FormControl, Grid, TextField, InputLabel, Select, Box, MenuItem, Button
 import Employee from "../../model/Employee";
 import employeeConfig from "../../config/employees-config.json"
 import InputResult from "../../model/InputResult";
-import { StatusType } from "../../model/StatusType";
+
 type Props = {
     submitFn: (empl: Employee) => Promise<InputResult>,
-    employeeUpdated?: Employee
-
+    employeeUpdated?: Employee,
+    update?: boolean,
+    submitBtnName? : string
 }
 const initialDate: any = 0;
 const initialGender: any = '';
 const initialEmployee: Employee = {
-    id: 0, birthDate: initialDate, name: '',department: '', salary: 0,
-     gender: initialGender
+    id: 0, birthDate: initialDate, name: '', department: '', salary: 0,
+    gender: initialGender
 };
-export const EmployeeForm: React.FC<Props> = ({ submitFn, employeeUpdated }) => {
+export const EmployeeForm: React.FC<Props> = ({ submitFn, employeeUpdated, update = true, submitBtnName = 'Submit' }) => {
     const { minYear, minSalary, maxYear, maxSalary, departments }
         = employeeConfig;
-    const [employee, setEmployee] =
-        useState<Employee>(employeeUpdated || initialEmployee);
-        const [errorMessage, setErrorMessage] = useState('');
+    const [employee, setEmployee] = useState<Employee>(employeeUpdated || initialEmployee);
+    const [errorMessage, setErrorMessage] = useState('');
+
     function handlerName(event: any) {
         const name = event.target.value;
         const emplCopy = { ...employee };
@@ -47,24 +48,24 @@ export const EmployeeForm: React.FC<Props> = ({ submitFn, employeeUpdated }) => 
     }
     function genderHandler(event: any) {
         setErrorMessage('');
-        const gender:'male'|'female' = event.target.value;
+        const gender: 'male' | 'female' = event.target.value;
         const emplCopy = { ...employee };
         emplCopy.gender = gender;
         setEmployee(emplCopy);
     }
     async function onSubmitFn(event: any) {
         event.preventDefault();
-        if(!employee.gender) {
+        if (!employee.gender) {
             setErrorMessage("Please select gender")
         } else {
-             const res =  await submitFn(employee);
-             
-             
-             res.status == "success" && event.target.reset();
-            
+            const res = await submitFn(employee);
+
+
+            res.status == "success" && event.target.reset();
+
         }
-       
-        
+
+
     }
     function onResetFn(event: any) {
         setEmployee(employeeUpdated || initialEmployee);
@@ -77,6 +78,7 @@ export const EmployeeForm: React.FC<Props> = ({ submitFn, employeeUpdated }) => 
                     <FormControl fullWidth required>
                         <InputLabel id="select-department-id">Department</InputLabel>
                         <Select labelId="select-department-id" label="Department"
+                            disabled={!update}
                             value={employee.department} onChange={handlerDepartment}>
                             <MenuItem value=''>None</MenuItem>
                             {departments.map(dep => <MenuItem value={dep} key={dep}>{dep}</MenuItem>)}
@@ -86,13 +88,16 @@ export const EmployeeForm: React.FC<Props> = ({ submitFn, employeeUpdated }) => 
                 <Grid item xs={8} sm={5} >
                     <TextField type="text" required fullWidth label="Employee name"
                         helperText="enter Employee name" onChange={handlerName}
+                        disabled={!update}
                         value={employee.name} />
                 </Grid>
                 <Grid item xs={8} sm={4} md={5}>
                     <TextField type="date" required fullWidth label="birthDate"
                         value={employee.birthDate ? employee.birthDate.toISOString()
-                            .substring(0, 10) : ''} inputProps={{
-                                readOnly: !!employeeUpdated,
+                            .substring(0, 10) : ''}
+                        disabled={!update}
+                        inputProps={{
+                            readOnly: !!employeeUpdated,
                             min: `${minYear}-01-01`,
                             max: `${maxYear}-12-31`
                         }} InputLabelProps={{
@@ -105,9 +110,10 @@ export const EmployeeForm: React.FC<Props> = ({ submitFn, employeeUpdated }) => 
                         value={employee.salary || ''}
                         helperText={`enter salary in range [${minSalary}-${maxSalary}]`}
                         inputProps={{
-                            min: `${minSalary }`,
-                            max: `${maxSalary }`
-                        }} />
+                            min: `${minSalary}`,
+                            max: `${maxSalary}`
+                        }}
+                        disabled={!update} />
                 </Grid>
                 <Grid item xs={8} sm={4} md={5}>
                     <FormControl required error={!!errorMessage}>
@@ -117,27 +123,28 @@ export const EmployeeForm: React.FC<Props> = ({ submitFn, employeeUpdated }) => 
                             defaultValue=""
                             value={employee.gender || ''}
                             name="radio-buttons-group"
-                           row onChange={genderHandler}
+                            row onChange={genderHandler}
                         >
-                            <FormControlLabel value="female" control={<Radio />} label="Female" disabled = {!!employeeUpdated} />
-                            <FormControlLabel value="male" control={<Radio />} label="Male" disabled = {!!employeeUpdated}/>
+                            <FormControlLabel value="female" control={<Radio />} label="Female" disabled={!!employeeUpdated} />
+                            <FormControlLabel value="male" control={<Radio />} label="Male" disabled={!!employeeUpdated} />
                             <FormHelperText>{errorMessage}</FormHelperText>
                         </RadioGroup>
                     </FormControl>
                 </Grid>
             </Grid>
 
+            {(update) ? 
+                <Box sx={{ marginTop: { xs: "10vh", sm: "5vh" }, textAlign: "center" }}>
+                    <Button type="submit" >{submitBtnName}</Button>
+                    <Button type="reset">Reset</Button>
+                </Box>
+             :''}
 
 
-
-            <Box sx={{ marginTop: { xs: "10vh", sm: "5vh" }, textAlign: "center" }}>
-                <Button type="submit" >Submit</Button>
-                <Button type="reset">Reset</Button>
-            </Box>
 
 
 
         </form>
-       
+
     </Box>
 }

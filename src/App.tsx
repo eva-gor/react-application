@@ -1,14 +1,14 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import NavigatorDispatcher from "./components/navigators/NavigatorDispatcher";
-
 import SignIn from "./components/pages/SignIn";
 import SignOut from "./components/pages/SignOut";
 import './App.css'
 import { useSelectorAuth, useSelectorCode } from "./redux/store";
-import { useMemo } from "react";
-import routesConfig from './config/routes-config.json';
+import { ReactElement, useMemo } from "react";
+import routesConfigDev from './config/routes-config-dev.json';
+import routesConfigProd from './config/routes-config-prod.json';
 import NotFound from "./components/pages/NotFound";
-import { RouteType } from "./components/navigators/Navigator";
+import { RouteType } from  "./components/navigators/Navigator";
 import UserData from "./model/UserData";
 import Employees from "./components/pages/Employees";
 import AddEmployee from "./components/pages/AddEmployee";
@@ -22,18 +22,20 @@ import { authService } from "./config/service-config";
 import { Alert, Snackbar } from "@mui/material";
 import { codeActions } from "./redux/slices/codeSlice";
 import Generation from "./components/pages/Generation";
-const {always, authenticated, admin, noadmin, noauthenticated} = routesConfig;
-type RouteTypeOrder = RouteType & {order?: number}
+
+const { always, authenticated, admin, noadmin, noauthenticated } = (process.env.NODE_ENV === 'development') ? routesConfigDev : routesConfigProd;
+
+type RouteTypeOrder = RouteType & { order?: number }
 function getRoutes(userData: UserData): RouteType[] {
   const res: RouteTypeOrder[] = [];
   res.push(...always);
-  if(userData) {
-      res.push(...authenticated);
-      if (userData.role === 'admin') {
-        res.push(...admin)
-      } else {
-        res.push(...noadmin)
-      }
+  if (userData) {
+    res.push(...authenticated);
+    if (userData.role === 'admin') {
+      res.push(...admin)
+    } else {
+      res.push(...noadmin)
+    }
   } else {
     res.push(...noauthenticated);
   }
@@ -41,7 +43,7 @@ function getRoutes(userData: UserData): RouteType[] {
     let res = 0;
     if (r1.order && r2.order) {
       res = r1.order - r2.order;
-    } 
+    }
     return res
   });
   if (userData) {
@@ -63,33 +65,33 @@ const App: React.FC = () => {
       case CodeType.SERVER_ERROR: res[1] = 'error'; break;
       case CodeType.UNKNOWN: res[1] = 'error'; break;
       case CodeType.AUTH_ERROR: res[1] = 'error';
-       dispatch(authActions.reset()); 
-      authService.logout()
+        dispatch(authActions.reset());
+        authService.logout()
     }
-    
+
     return res;
   }
   return <BrowserRouter>
-  <Routes>
-    <Route path="/" element={<NavigatorDispatcher routes={routes}/>}>
-        <Route index element={<Employees/>}/>
-        <Route path="employees/add" element={<AddEmployee/>}/>
-        <Route path="statistics/age" element={<AgeStatistics/>}/>
-        <Route path="statistics/salary" 
-        element={<SalaryStatistics/>}/>
-        
-        <Route path="signin" element={<SignIn/>}/>
-        <Route path="signout" element={<SignOut/>}/>
-        <Route path="generation" element={<Generation/>}/>
-        <Route path="/*" element={<NotFound/>}/>
-    </Route>
-  </Routes>
-  <Snackbar open={!!alertMessage} autoHideDuration={20000}
-                     onClose={() => dispatch(codeActions.reset())}>
-                        <Alert  onClose = {() => dispatch(codeActions.reset())} severity={severity} sx={{ width: '100%' }}>
-                            {alertMessage}
-                        </Alert>
-                    </Snackbar>
+    <Routes>
+      <Route path="/" element={<NavigatorDispatcher routes={routes} />}>
+        <Route index element={<Employees />} />
+        <Route path="employees/add" element={<AddEmployee />} />
+        <Route path="statistics/age" element={<AgeStatistics />} />
+        <Route path="statistics/salary"
+          element={<SalaryStatistics />} />
+
+        <Route path="signin" element={<SignIn />} />
+        <Route path="signout" element={<SignOut />} />
+        <Route path="generation" element={<Generation />} />
+        <Route path="/*" element={<NotFound />} />
+      </Route>
+    </Routes>
+    <Snackbar open={!!alertMessage} autoHideDuration={20000}
+      onClose={() => dispatch(codeActions.reset())}>
+      <Alert onClose={() => dispatch(codeActions.reset())} severity={severity} sx={{ width: '100%' }}>
+        {alertMessage}
+      </Alert>
+    </Snackbar>
   </BrowserRouter>
 }
 export default App;

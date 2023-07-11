@@ -1,5 +1,6 @@
-import LoginData from "../model/LoginData";
-import UserData from "../model/UserData";
+import LoginData from "../../model/LoginData";
+import NetworkType from "../../model/NetworkType";
+import UserData from "../../model/UserData";
 import AuthService from "./AuthService";
 export const AUTH_DATA_JWT = 'auth-data-jwt';
 function getUserData(data: any): UserData {
@@ -12,6 +13,9 @@ function getUserData(data: any): UserData {
 }
 export default class AuthServiceJwt implements AuthService {
     constructor(private url: string){}
+    getAvailableProviders(): NetworkType[] {
+        return [];
+    }
     async login(loginData: LoginData): Promise<UserData > {
        const response = await fetch(this.url, {
         method: 'POST',
